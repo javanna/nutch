@@ -193,7 +193,12 @@ Tool {
 
       final SolrQuery solrQuery = new SolrQuery(SOLR_GET_ALL_QUERY);
       solrQuery.setFields(SolrConstants.ID_FIELD);
+      solrQuery.setFilterQueries(SOLR_WITH_DIGEST_FILTER);
       solrQuery.setRows(1);
+      //overrides any potential default not needed
+      solrQuery.setFacet(false);
+      solrQuery.setHighlight(false);
+      solrQuery.setTerms(false);
 
       QueryResponse response;
       try {
@@ -229,8 +234,12 @@ Tool {
                           SolrConstants.TIMESTAMP_FIELD,
                           SolrConstants.DIGEST_FIELD);
       solrQuery.setFilterQueries(SOLR_WITH_DIGEST_FILTER);
-      solrQuery.setStart(solrSplit.getDocBegin());
       solrQuery.setRows(numDocs);
+      //overrides any potential default not needed
+      solrQuery.setStart(solrSplit.getDocBegin());
+      solrQuery.setFacet(false);
+      solrQuery.setHighlight(false);
+      solrQuery.setTerms(false);
 
       QueryResponse response;
       try {
