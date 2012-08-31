@@ -17,6 +17,8 @@
 
 package org.apache.nutch.indexer.staticfield;
 
+import java.lang.String;
+import java.lang.System;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -52,16 +54,18 @@ public class StaticFieldIndexer implements IndexingFilter {
 		return doc;
 	}
 
-	private HashMap<String, String[]> parseFields(String fieldsString) {
+	private static HashMap<String, String[]> parseFields(String fieldsString) {
 		HashMap<String, String[]> fields = new HashMap<String, String[]>();
-		
 		/*
 		  The format is very easy, it's a comma-separated list of fields in the form <name>:<value>
 		*/
 		for(String field: fieldsString.split(",")){
-			String[] entry = field.split(":");
-			if(entry.length == 2)
-				fields.put(entry[0].trim(), entry[1].trim().split(" "));
+            int separatorIndex = field.indexOf(':');
+            if (separatorIndex != -1) {
+                String key = field.substring(0, separatorIndex);
+                String value = field.substring(separatorIndex + 1);
+                fields.put(key.trim(), value.trim().split(" "));
+            }
 		}
 
 		return fields;
