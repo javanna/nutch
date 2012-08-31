@@ -89,6 +89,8 @@ Tool {
 
   private static final String SOLR_GET_ALL_QUERY = SolrConstants.ID_FIELD + ":[* TO *]";
 
+  private static final String SOLR_WITH_DIGEST_FILTER = SolrConstants.DIGEST_FIELD + ":[* TO *]";
+
   private static final int NUM_MAX_DELETE_REQUEST = 1000;
 
   public static class SolrRecord implements Writable {
@@ -226,6 +228,7 @@ Tool {
       solrQuery.setFields(SolrConstants.ID_FIELD, SolrConstants.BOOST_FIELD,
                           SolrConstants.TIMESTAMP_FIELD,
                           SolrConstants.DIGEST_FIELD);
+      solrQuery.setFilterQueries(SOLR_WITH_DIGEST_FILTER);
       solrQuery.setStart(solrSplit.getDocBegin());
       solrQuery.setRows(numDocs);
 
