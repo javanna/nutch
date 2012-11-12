@@ -76,10 +76,7 @@ import org.apache.solr.common.SolrDocumentList;
  * timestamp is kept. Again, every other is deleted from solr index.
  * </li>
  * </ul>
- * 
- * Note that unlike {@link DeleteDuplicates} we assume that two documents in
- * a solr index will never have the same URL. So this class only deals with
- * documents with <b>different</b> URLs but the same digest. 
+ *
  */
 public class SolrDeleteDuplicates
 implements Reducer<Text, SolrDeleteDuplicates.SolrRecord, Text, SolrDeleteDuplicates.SolrRecord>,
@@ -188,10 +185,13 @@ Tool {
     /** Return each index as a split. */
     public InputSplit[] getSplits(JobConf job, int numSplits) throws IOException {
       SolrServer solr = SolrUtils.getCommonsHttpSolrServer(job);
-
+      LOG.info("NumSplitsHint: " + numSplits);
       final SolrQuery solrQuery = new SolrQuery(SOLR_GET_ALL_QUERY);
       solrQuery.setFields(SolrConstants.ID_FIELD);
       solrQuery.setRows(1);
+      solrQuery.setFacet(false);
+      solrQuery.setHighlight(false);
+      solrQuery.setTerms(false);
 
       QueryResponse response;
       try {
@@ -201,7 +201,10 @@ Tool {
       }
 
       int numResults = (int)response.getResults().getNumFound();
-      int numDocsPerSplit = (numResults / numSplits); 
+      LOG.info("NumResults: " + numResults);
+      numSplits = numResults / job.getInt("maxFetchRows", 10000);
+      LOG.info("NumSplitsActual: " + numResults);
+      int numDocsPerSplit = (numResults / numSplits);
       int currentDoc = 0;
       SolrInputSplit[] splits = new SolrInputSplit[numSplits];
       for (int i = 0; i < numSplits - 1; i++) {
@@ -226,7 +229,12 @@ Tool {
       solrQuery.setFields(SolrConstants.ID_FIELD, SolrConstants.BOOST_FIELD,
                           SolrConstants.TIMESTAMP_FIELD,
                           SolrConstants.DIGEST_FIELD);
+      //requires the digest field to be indexed
       solrQuery.setStart(solrSplit.getDocBegin());
+      //overrides any potential default not needed
+      solrQuery.setFacet(false);
+      solrQuery.setHighlight(false);
+      solrQuery.setTerms(false);
       solrQuery.setRows(numDocs);
 
       QueryResponse response;
@@ -267,9 +275,10 @@ Tool {
 
           SolrDocument doc = solrDocs.get(currentDoc);
           String digest = (String) doc.getFieldValue(SolrConstants.DIGEST_FIELD);
-          key.set(digest);
-          value.readSolrDocument(doc);
-
+          if (digest != null) {
+            key.set(digest);
+            value.readSolrDocument(doc);
+          }
           currentDoc++;
           return true;
         }    

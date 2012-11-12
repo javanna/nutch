@@ -79,8 +79,15 @@ public class SolrWriter implements NutchIndexWriter {
       try {
         LOG.info("Adding " + Integer.toString(inputDocs.size()) + " documents");
         solr.add(inputDocs);
-      } catch (final SolrServerException e) {
-        throw makeIOException(e);
+      } catch(Exception e) {
+        LOG.warn("Adding a batch failed. Now try to add each document individually...");
+        for (SolrInputDocument document : inputDocs) {
+          try {
+            solr.add(document);
+          } catch (final Exception e1) {
+            LOG.error(String.format("Document with id %s could not be added.", document.getField("id")));
+          }
+        }
       }
       inputDocs.clear();
     }

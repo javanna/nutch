@@ -16,10 +16,13 @@
  */
 package org.apache.nutch.indexer.solr;
 
+import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.mapred.JobConf;
@@ -50,7 +53,10 @@ public class SolrUtils {
       client.setParams(params);
     }
 
-    return new CommonsHttpSolrServer(job.get(SolrConstants.SERVER_URL), client);
+    CommonsHttpSolrServer solrServer = new CommonsHttpSolrServer(job.get(SolrConstants.SERVER_URL), client);
+    solrServer.setRequestWriter(new BinaryRequestWriter());
+    client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, new DefaultHttpMethodRetryHandler(0, false));
+    return solrServer;
   }
 
   public static String stripNonCharCodepoints(String input) {

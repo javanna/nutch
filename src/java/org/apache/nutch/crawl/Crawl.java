@@ -146,11 +146,11 @@ public class Crawl extends Configured implements Tool {
         // index, dedup & merge
         FileStatus[] fstats = fs.listStatus(segments, HadoopFSUtil.getPassDirectoriesFilter(fs));
         SolrIndexer indexer = new SolrIndexer(getConf());
-        indexer.indexSolr(solrUrl, crawlDb, linkDb, 
-          Arrays.asList(HadoopFSUtil.getPaths(fstats)));
+        indexer.indexSolr(solrUrl, crawlDb, linkDb,
+                Arrays.asList(HadoopFSUtil.getPaths(fstats)), true);
         SolrDeleteDuplicates dedup = new SolrDeleteDuplicates();
         dedup.setConf(getConf());
-        dedup.dedup(solrUrl);
+        dedup.dedup(solrUrl, true);
       }
       
     } else {
